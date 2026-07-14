@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#0a0c12" />
+        <title>Chaeul · Admin Dashboard</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/admin.css" />
+    </head>
+    <body class="admin-body">
+        <div class="aurora" aria-hidden="true">
+            <span class="blob b1"></span>
+            <span class="blob b2"></span>
+            <div class="grid-overlay"></div>
+        </div>
+
+        <!-- ✦ Login -->
+        <div class="login-screen" id="loginScreen">
+            <div class="login-card reveal-modal">
+                <div class="brand" style="justify-content: center; margin-bottom: 8px">
+                    <span class="brand-mark">✦</span>
+                    <span class="brand-name">Chaeul Admin</span>
+                </div>
+                <p class="modal-sub" style="text-align: center">Masukkan token admin untuk masuk.</p>
+                <div class="field">
+                    <label>Admin Token</label>
+                    <input id="tokenInput" type="password" placeholder="••••••••" autocomplete="off" />
+                    <div class="err" id="loginErr">Token salah.</div>
+                </div>
+                <button class="btn btn-primary" id="loginBtn" style="width: 100%; justify-content: center">
+                    Masuk Dashboard
+                </button>
+                <p style="text-align: center; margin-top: 16px; font-size: 0.82rem; color: var(--faint)">
+                    <a href="/" style="color: var(--brand)">← Kembali ke situs</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- ✦ Dashboard -->
+        <div class="dash" id="dash" style="display: none">
+            <aside class="side">
+                <a href="/" class="brand"><span class="brand-mark">✦</span><span>Chaeul</span></a>
+                <nav class="side-nav">
+                    <button class="side-link active" data-tab="overview">
+                        <span class="ic">📊</span> Overview
+                    </button>
+                    <button class="side-link" data-tab="licenses">
+                        <span class="ic">🔑</span> Lisensi
+                    </button>
+                    <button class="side-link" data-tab="orders">
+                        <span class="ic">🧾</span> Pesanan
+                    </button>
+                </nav>
+                <button class="side-link logout" id="logoutBtn"><span class="ic">🚪</span> Keluar</button>
+            </aside>
+
+            <main class="main">
+                <header class="dash-head">
+                    <div>
+                        <h1 id="tabTitle">Overview</h1>
+                        <p class="dash-sub" id="tabSub">Ringkasan real-time bot & lisensi.</p>
+                    </div>
+                    <div class="dash-head-right">
+                        <span class="live-badge"><span class="live-dot"></span> Live</span>
+                        <button class="btn btn-ghost btn-sm" id="refreshBtn">↻ Refresh</button>
+                    </div>
+                </header>
+
+                <!-- Overview -->
+                <section class="tab" id="tab-overview">
+                    <div class="kpi-grid" id="kpiGrid"></div>
+                    <div class="panel">
+                        <h3>Aktivitas Bot (Heartbeat)</h3>
+                        <div class="mini-list" id="botStatus"></div>
+                    </div>
+                </section>
+
+                <!-- Licenses -->
+                <section class="tab" id="tab-licenses" style="display: none">
+                    <div class="panel-actions">
+                        <button class="btn btn-primary btn-sm" id="newLicBtn">＋ Buat Lisensi</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="tbl" id="licTable">
+                            <thead>
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Plan</th>
+                                    <th>Owner</th>
+                                    <th>Status</th>
+                                    <th>Bot</th>
+                                    <th>Kadaluarsa</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="licBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Orders -->
+                <section class="tab" id="tab-orders" style="display: none">
+                    <div class="table-wrap">
+                        <table class="tbl" id="ordTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Paket</th>
+                                    <th>Grup</th>
+                                    <th>Kontak</th>
+                                    <th>Harga</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal" id="modal" aria-hidden="true">
+            <div class="modal-backdrop" data-close></div>
+            <div class="modal-card reveal-modal">
+                <button class="modal-x" data-close>×</button>
+                <div class="modal-body" id="modalBody"></div>
+            </div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+        <script src="/js/admin.js"></script>
+    </body>
+</html>

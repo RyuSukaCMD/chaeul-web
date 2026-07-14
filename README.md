@@ -9,10 +9,31 @@ Frontend elegan (HTML/CSS/JS murni, animasi kelas enterprise) + backend ringan
 - **Landing page** elegan & soft dengan animasi (aurora background, reveal on scroll,
   counter animasi, chat mockup, spotlight card, dll).
 - **Paket sewa**: Private Group (10K/bln, maks 3 anggota) & Public Group (15K/bln).
-- **Order flow**: pilih paket → input link grup → checkout (payment placeholder).
+- **Order flow**: pilih paket → input link grup → checkout → pembayaran.
 - **Live update** (SSE): jumlah user terdaftar & grup ter-register real-time.
 - **Sistem Lisensi**: buat / verifikasi / heartbeat / revoke lisensi bot.
+- **Admin Dashboard** (`/admin`): login token, KPI real-time, monitor bot online
+  (heartbeat), kelola lisensi & pesanan.
+- **Auto-provisioning**: bot otomatis join grup, cek jumlah member (private maks 3),
+  lalu terbitkan lisensi.
+- **Payment gateway**: dukung Midtrans (Snap) & Xendit (Invoice) + webhook otomatis.
+  Tanpa key → mode placeholder (konfirmasi manual via WA).
 - **Sinkronisasi**: bot push data user & grup ke website.
+
+## 🔄 Alur Otomatis Penuh
+
+```
+User pesan → Payment (webhook auto-paid) → Admin approve / Auto-Provision
+   → Bot join grup + cek member → Lisensi terbit → Bot aktif di grup
+```
+
+## 🖥️ Admin Dashboard
+
+Buka `https://domain/admin`, login dengan `ADMIN_TOKEN`. Fitur:
+- KPI: user, grup, lisensi aktif, bot online, pesanan, pendapatan
+- Monitor heartbeat bot (online/offline + waktu terakhir)
+- Kelola lisensi: buat, perpanjang, suspend/aktifkan, revoke
+- Kelola pesanan: tandai bayar, terbitkan lisensi, **Auto-Provision**, hapus
 
 ## 🚀 Menjalankan (VPS)
 

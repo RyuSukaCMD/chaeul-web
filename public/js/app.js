@@ -345,28 +345,65 @@
             toast("⚠️ " + (data.error || "Gagal membuat pesanan."))
             return
         }
-        showPayment(data.order, data.payment)
+        await showPayment(data.order)
     }
 
-    function showPayment(order, payment) {
-        modalBody.innerHTML = `
+    async function showPayment(order) {
+        toast("✅ Pesanan " + order.id + " dibuat!")
+        // Coba buat pembayaran lewat gateway (Midtrans/Xendit) bila aktif.
+        let pay = { mode: "placeholder", amount: order.price }
+        try {
+            pay = await fetch("/api/payment/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ orderId: order.id })
+            }).then((r) => r.json())
+        } catch {}
+
+        // Xendit → redirect ke invoice
+        if (pay.mode === "xendit" && pay.invoice_url) {
+            modalBody.innerHTML = payShell(order, pay.amount, `
+                <a class="btn btn-primary" style="width:100%;justify-content:center"
+                   href="${pay.invoice_url}" target="_blank" rel="noopener">💳 Bayar Sekarang</a>`)
+            return
+        }
+
+        // Midtrans → buka Snap popup bila script tersedia, else redirect_url
+        if (pay.mode === "midtrans" && pay.token) {
+            modalBody.innerHTML = payShell(order, pay.amount, `
+                <button class="btn btn-primary" id="snapBtn" style="width:100%;justify-content:center">💳 Bayar Sekarang</button>`)
+            $("#snapBtn").addEventListener("click", () => {
+                if (window.snap) window.snap.pay(pay.token)
+                else if (pay.redirect_url) window.open(pay.redirect_url, "_blank")
+            })
+            return
+        }
+
+        // Placeholder → konfirmasi manual via WhatsApp
+        modalBody.innerHTML = payShell(
+            order,
+            pay.amount || order.price,
+            `<a class="btn btn-primary" style="width:100%;justify-content:center"
+                href="https://wa.me/6285800360340?text=${encodeURIComponent(
+                    `Halo, saya mau bayar sewa bot.\nOrder: ${order.id}\nPaket: ${order.planName}\nGrup: ${order.groupLink}`
+                )}" target="_blank" rel="noopener">💬 Konfirmasi via WhatsApp</a>`,
+            pay.note || "Selesaikan pembayaran lalu konfirmasi ke owner."
+        )
+    }
+
+    function payShell(order, amount, actionHtml, note) {
+        return `
             <h3>Pembayaran</h3>
             <p class="modal-sub">Pesanan berhasil dibuat. Selesaikan pembayaran.</p>
             <div class="pay-box">
                 <div style="color:var(--muted);font-size:.9rem">Total tagihan</div>
-                <div class="big">${rp(payment.amount)}</div>
+                <div class="big">${rp(amount)}</div>
                 <div class="order-id">${order.id}</div>
                 <p style="color:var(--muted);font-size:.86rem;margin-bottom:18px">
-                    ${payment.note}
+                    ${note || "Klik tombol di bawah untuk melanjutkan pembayaran."}
                 </p>
-                <a class="btn btn-primary" style="width:100%;justify-content:center"
-                   href="https://wa.me/6285800360340?text=${encodeURIComponent(
-                       `Halo, saya mau bayar sewa bot.\nOrder: ${order.id}\nPaket: ${order.planName}\nGrup: ${order.groupLink}`
-                   )}" target="_blank" rel="noopener">
-                    💬 Konfirmasi via WhatsApp
-                </a>
+                ${actionHtml}
             </div>`
-        toast("✅ Pesanan " + order.id + " dibuat!")
     }
 
     // ─── Toast ───

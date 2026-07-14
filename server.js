@@ -6,6 +6,9 @@ import { read } from "./lib/db.js"
 import publicRoutes from "./routes/public.js"
 import licenseRoutes from "./routes/license.js"
 import syncRoutes from "./routes/sync.js"
+import adminRoutes from "./routes/admin.js"
+import provisionRoutes from "./routes/provision.js"
+import paymentRoutes from "./routes/payment.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -18,6 +21,9 @@ app.use(express.json({ limit: "2mb" }))
 app.use("/api", publicRoutes)
 app.use("/api/license", licenseRoutes)
 app.use("/api/sync", syncRoutes)
+app.use("/api/admin", adminRoutes)
+app.use("/api/provision", provisionRoutes)
+app.use("/api/payment", paymentRoutes)
 
 // ─── Live updates via Server-Sent Events ───
 // Frontend subscribe /api/live untuk menerima stats real-time.
@@ -74,6 +80,10 @@ setInterval(() => {
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "public")))
+// Halaman admin dashboard
+app.get("/admin", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "admin.html"))
+})
 app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"))
 })
