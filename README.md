@@ -46,6 +46,24 @@ npm start                 # default http://localhost:3000
 # Ubah token di .env → restart server → langsung berlaku.
 ```
 
+## 🔄 Auto-update (GitHub Webhook)
+
+Web bisa update otomatis saat ada push ke GitHub.
+
+1. Jalankan dengan **pm2** bernama `chaeul-web` (agar bisa auto-restart):
+   ```bash
+   pm2 start server.js --name chaeul-web
+   ```
+2. Set `WEBHOOK_SECRET` di `.env`.
+3. Di GitHub repo → **Settings → Webhooks → Add webhook**:
+   - Payload URL: `https://domain-kamu.com/api/update/webhook`
+   - Content type: `application/json`
+   - Secret: sama dengan `WEBHOOK_SECRET`
+   - Event: `Just the push event`
+
+Setiap push ke `main`, web otomatis `git pull` + `npm install` + `pm2 restart`.
+Trigger manual: `POST /api/update/pull` (header `x-admin-token`).
+
 Untuk produksi, jalankan di belakang reverse proxy (nginx/caddy) + pakai `pm2`:
 
 ```bash

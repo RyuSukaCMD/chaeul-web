@@ -13,13 +13,21 @@ import syncRoutes from "./routes/sync.js"
 import adminRoutes from "./routes/admin.js"
 import provisionRoutes from "./routes/provision.js"
 import paymentRoutes from "./routes/payment.js"
+import updateRoutes from "./routes/update.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 const PORT = process.env.PORT || 3000
 
 app.use(cors())
-app.use(express.json({ limit: "2mb" }))
+app.use(
+    express.json({
+        limit: "2mb",
+        verify: (req, _res, buf) => {
+            req.rawBody = buf
+        }
+    })
+)
 
 // API
 app.use("/api", publicRoutes)
@@ -28,6 +36,7 @@ app.use("/api/sync", syncRoutes)
 app.use("/api/admin", adminRoutes)
 app.use("/api/provision", provisionRoutes)
 app.use("/api/payment", paymentRoutes)
+app.use("/api/update", updateRoutes)
 
 // ─── Live updates via Server-Sent Events ───
 // Frontend subscribe /api/live untuk menerima stats real-time.
