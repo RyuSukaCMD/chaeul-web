@@ -1,3 +1,6 @@
+import { loadEnv } from "./lib/env.js"
+loadEnv() // muat .env SEBELUM modul lain membaca process.env
+
 import express from "express"
 import cors from "cors"
 import path from "path"

@@ -13,12 +13,14 @@ import {
 
 const router = express.Router()
 
-// Token admin untuk endpoint manajemen (set via env ADMIN_TOKEN).
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "chaeul-admin-secret"
+// Token admin untuk endpoint manajemen (set via env ADMIN_TOKEN). Dibaca lazy.
+function adminToken() {
+    return process.env.ADMIN_TOKEN || "chaeul-admin-secret"
+}
 
 function requireAdmin(req, res, next) {
     const token = req.headers["x-admin-token"] || req.query.token
-    if (token !== ADMIN_TOKEN) return res.status(401).json({ ok: false, error: "Unauthorized" })
+    if (token !== adminToken()) return res.status(401).json({ ok: false, error: "Unauthorized" })
     next()
 }
 

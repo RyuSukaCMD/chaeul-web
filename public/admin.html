@@ -55,6 +55,9 @@
                     <button class="side-link" data-tab="orders">
                         <span class="ic">🧾</span> Pesanan
                     </button>
+                    <button class="side-link" data-tab="coupons">
+                        <span class="ic">🎟️</span> Kupon
+                    </button>
                 </nav>
                 <button class="side-link logout" id="logoutBtn"><span class="ic">🚪</span> Keluar</button>
             </aside>
@@ -116,6 +119,27 @@
                                 </tr>
                             </thead>
                             <tbody id="licBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Coupons -->
+                <section class="tab" id="tab-coupons" style="display: none">
+                    <div class="panel-actions">
+                        <button class="btn btn-primary btn-sm" id="newCouponBtn">＋ Buat Kupon</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="tbl" id="cpnTable">
+                            <thead>
+                                <tr>
+                                    <th>Kode</th>
+                                    <th>Diskon</th>
+                                    <th>Terpakai</th>
+                                    <th>Kadaluarsa</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cpnBody"></tbody>
                         </table>
                     </div>
                 </section>

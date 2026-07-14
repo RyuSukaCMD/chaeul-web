@@ -3,18 +3,22 @@ import { read, update, write } from "../lib/db.js"
 import { listLicenses, isOnline, createLicense } from "../lib/license.js"
 
 const router = express.Router()
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "chaeul-admin-secret"
+// Baca token secara LAZY (saat request), agar selalu memakai nilai
+// process.env terbaru — termasuk yang di-load dari .env.
+function adminToken() {
+    return process.env.ADMIN_TOKEN || "chaeul-admin-secret"
+}
 
 function requireAdmin(req, res, next) {
     const token = req.headers["x-admin-token"] || req.query.token || req.body?.token
-    if (token !== ADMIN_TOKEN) return res.status(401).json({ ok: false, error: "Unauthorized" })
+    if (token !== adminToken()) return res.status(401).json({ ok: false, error: "Unauthorized" })
     next()
 }
 
 // ─── Cek token (untuk login dashboard) ───
 router.post("/auth", (req, res) => {
     const token = req.body?.token
-    res.json({ ok: token === ADMIN_TOKEN })
+    res.json({ ok: token === adminToken() })
 })
 
 // Catat snapshot harian (untuk grafik tren). Dipanggil tiap overview.

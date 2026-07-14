@@ -58,7 +58,8 @@
     const TAB_INFO = {
         overview: ["Overview", "Ringkasan real-time bot & lisensi."],
         licenses: ["Lisensi", "Kelola semua lisensi bot."],
-        orders: ["Pesanan", "Pesanan sewa masuk dari website."]
+        orders: ["Pesanan", "Pesanan sewa masuk dari website."],
+        coupons: ["Kupon", "Kelola kode diskon."]
     }
     $$(".side-link[data-tab]").forEach((b) =>
         b.addEventListener("click", () => {
@@ -89,6 +90,45 @@
         renderBots(r.licenses)
         renderLicenses(r.licenses)
         renderOrders(r.orders)
+        loadCoupons()
+    }
+
+    // ─── Coupons ───
+    async function loadCoupons() {
+        const r = await api("/api/admin/coupons")
+        if (!r.ok) return
+        renderCoupons(r.items || [])
+    }
+    function renderCoupons(items) {
+        const body = $("#cpnBody")
+        if (!body) return
+        if (!items.length) {
+            body.innerHTML = `<tr><td colspan="5" class="empty-tbl">Belum ada kupon.</td></tr>`
+            return
+        }
+        body.innerHTML = items
+            .map((c) => {
+                const exp = c.expiresAt ? fmtDate(c.expiresAt) : "Tak terbatas"
+                const use = c.maxUse ? `${c.used || 0}/${c.maxUse}` : `${c.used || 0}/∞`
+                return `<tr>
+                <td class="mono">${c.code}</td>
+                <td>${c.percent}%</td>
+                <td>${use}</td>
+                <td style="font-size:.82rem;color:var(--muted)">${exp}</td>
+                <td><div class="row-actions">
+                    <button class="mini-btn danger" data-cpn-del="${c.code}">Hapus</button>
+                </div></td>
+            </tr>`
+            })
+            .join("")
+        $$("[data-cpn-del]").forEach((b) =>
+            b.addEventListener("click", async () => {
+                if (!confirm("Hapus kupon " + b.dataset.cpnDel + "?")) return
+                await api("/api/admin/coupon/delete", "POST", { code: b.dataset.cpnDel })
+                toast("🗑️ Kupon dihapus")
+                loadCoupons()
+            })
+        )
     }
 
     // ─── SVG Charts (no dependency) ───
@@ -347,6 +387,46 @@
     }
 
     // ─── New license modal ───
+    // ─── New coupon modal ───
+    $("#newCouponBtn").addEventListener("click", () => {
+        $("#modalBody").innerHTML = `
+            <h3>Buat Kupon</h3>
+            <p class="modal-sub">Kode diskon untuk pelanggan.</p>
+            <div class="field">
+                <label>Kode Kupon</label>
+                <input id="ncCode" placeholder="HEMAT20" style="text-transform:uppercase" />
+            </div>
+            <div class="field">
+                <label>Diskon (%)</label>
+                <input id="ncPercent" type="number" value="10" min="0" max="100" />
+            </div>
+            <div class="field">
+                <label>Maks Pemakaian (0 = tak terbatas)</label>
+                <input id="ncMax" type="number" value="0" min="0" />
+            </div>
+            <div class="field">
+                <label>Berlaku (hari, 0 = selamanya)</label>
+                <input id="ncDays" type="number" value="0" min="0" />
+            </div>
+            <button class="btn btn-primary" id="ncSubmit" style="width:100%;justify-content:center">Buat Kupon</button>`
+        openModal()
+        $("#ncSubmit").addEventListener("click", async () => {
+            const code = $("#ncCode").value.trim().toUpperCase()
+            if (!code) return toast("⚠️ Kode wajib diisi")
+            const r = await api("/api/admin/coupon/create", "POST", {
+                code,
+                percent: parseInt($("#ncPercent").value, 10) || 0,
+                maxUse: parseInt($("#ncMax").value, 10) || 0,
+                days: parseInt($("#ncDays").value, 10) || 0
+            })
+            if (r.ok) {
+                closeModal()
+                toast("🎟️ Kupon " + code + " dibuat")
+                loadCoupons()
+            } else toast("⚠️ " + (r.error || "Gagal"))
+        })
+    })
+
     $("#newLicBtn").addEventListener("click", () => {
         $("#modalBody").innerHTML = `
             <h3>Buat Lisensi</h3>

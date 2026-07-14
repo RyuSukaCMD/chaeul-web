@@ -3,12 +3,15 @@ import { write, read, update } from "../lib/db.js"
 import bus from "../lib/bus.js"
 
 const router = express.Router()
-const SYNC_TOKEN = process.env.SYNC_TOKEN || "chaeul-sync-secret"
 const FISH_FEED_MAX = 40 // simpan 40 tangkapan terakhir
+
+function syncToken() {
+    return process.env.SYNC_TOKEN || "chaeul-sync-secret"
+}
 
 function requireSync(req, res, next) {
     const token = req.headers["x-sync-token"] || req.query.token
-    if (token !== SYNC_TOKEN) return res.status(401).json({ ok: false, error: "Unauthorized" })
+    if (token !== syncToken()) return res.status(401).json({ ok: false, error: "Unauthorized" })
     next()
 }
 

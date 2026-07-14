@@ -41,6 +41,9 @@ Buka `https://domain/admin`, login dengan `ADMIN_TOKEN`. Fitur:
 npm install
 cp .env.example .env      # lalu isi ADMIN_TOKEN & SYNC_TOKEN
 npm start                 # default http://localhost:3000
+
+# Catatan: file .env dibaca OTOMATIS saat start (tanpa perlu dotenv).
+# Ubah token di .env → restart server → langsung berlaku.
 ```
 
 Untuk produksi, jalankan di belakang reverse proxy (nginx/caddy) + pakai `pm2`:
