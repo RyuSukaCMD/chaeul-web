@@ -83,7 +83,7 @@ function currentLists() {
         userTotal: users.length,
         groupTotal: groups.length,
         users: users.slice(-8).map((u) => ({
-            display: `${mask(u.number)} - (${u.name || "User"})`
+            display: `${mask(u.number)} - (${u.name || u.username || "User"})`
         })),
         groups: groups.slice(-8).map((g) => ({ name: g.name || "Grup", type: g.type || "private" }))
     }

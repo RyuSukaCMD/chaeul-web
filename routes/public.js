@@ -31,8 +31,8 @@ router.get("/users", (req, res) => {
     const users = read("users")
     const safe = users.slice(-100).map((u) => ({
         // Format tampilan: "62857XXXX - (Nama)"
-        display: `${maskNumber(u.number)} - (${u.name || "User"})`,
-        name: u.name || "User",
+        display: `${maskNumber(u.number)} - (${u.name || u.username || "User"})`,
+        name: u.name || u.username || "User",
         number: maskNumber(u.number),
         joinedAt: u.joinedAt || null
     }))
