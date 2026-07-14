@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#0d1117" />
+        <title>Chaeul · Sewa Bot WhatsApp Premium</title>
+        <meta
+            name="description"
+            content="Sewa bot WhatsApp Chaeul — otomasi grup, RPG, downloader, AI, dan banyak lagi. Elegan, cepat, andal."
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/css/style.css" />
+    </head>
+    <body>
+        <!-- ✦ Aurora background -->
+        <div class="aurora" aria-hidden="true">
+            <span class="blob b1"></span>
+            <span class="blob b2"></span>
+            <span class="blob b3"></span>
+            <div class="grid-overlay"></div>
+        </div>
+
+        <!-- ✦ Navbar -->
+        <header class="nav" id="nav">
+            <div class="nav-inner">
+                <a href="#home" class="brand">
+                    <span class="brand-mark">✦</span>
+                    <span class="brand-name">Chaeul</span>
+                </a>
+                <nav class="nav-links">
+                    <a href="#features">Fitur</a>
+                    <a href="#pricing">Harga</a>
+                    <a href="#live">Live</a>
+                    <a href="#how">Cara Kerja</a>
+                </nav>
+                <a href="#pricing" class="btn btn-primary btn-sm">Sewa Sekarang</a>
+                <button class="nav-toggle" id="navToggle" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ✦ Hero -->
+        <section class="hero" id="home">
+            <div class="container hero-grid">
+                <div class="hero-copy reveal">
+                    <span class="pill">
+                        <span class="dot"></span> Bot WhatsApp Generasi Baru
+                    </span>
+                    <h1 class="hero-title">
+                        Sewa Bot WhatsApp
+                        <span class="grad">Chaeul</span>
+                        untuk grupmu.
+                    </h1>
+                    <p class="hero-sub">
+                        Otomasi grup, sistem RPG memancing, downloader, AI cerdas, dan puluhan
+                        fitur lainnya. Elegan, cepat, dan andal — siap pakai dalam hitungan menit.
+                    </p>
+                    <div class="hero-cta">
+                        <a href="#pricing" class="btn btn-primary">
+                            Mulai Sewa
+                            <svg viewBox="0 0 24 24" class="ico"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                        <a href="#features" class="btn btn-ghost">Lihat Fitur</a>
+                    </div>
+                    <div class="hero-stats" id="heroStats">
+                        <div class="hstat">
+                            <span class="hstat-num" data-counter="0" id="statUsers">0</span>
+                            <span class="hstat-label">User Terdaftar</span>
+                        </div>
+                        <div class="hstat">
+                            <span class="hstat-num" data-counter="0" id="statGroups">0</span>
+                            <span class="hstat-label">Grup Aktif</span>
+                        </div>
+                        <div class="hstat">
+                            <span class="hstat-num" data-counter="0" id="statLic">0</span>
+                            <span class="hstat-label">Lisensi Aktif</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat mockup -->
+                <div class="hero-visual reveal">
+                    <div class="phone">
+                        <div class="phone-notch"></div>
+                        <div class="chat-head">
+                            <div class="avatar">✦</div>
+                            <div>
+                                <div class="chat-name">Chaeul Bot</div>
+                                <div class="chat-status"><span class="online"></span> online</div>
+                            </div>
+                        </div>
+                        <div class="chat-body" id="chatBody"></div>
+                    </div>
+                    <div class="glow"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ✦ Features -->
+        <section class="section" id="features">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow">Kenapa Chaeul</span>
+                    <h2>Fitur lengkap, performa premium.</h2>
+                    <p>Semua yang grupmu butuhkan dalam satu bot yang elegan.</p>
+                </div>
+                <div class="feature-grid" id="featureGrid"></div>
+            </div>
+        </section>
+
+        <!-- ✦ Pricing -->
+        <section class="section" id="pricing">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow">Harga Transparan</span>
+                    <h2>Pilih paket yang pas.</h2>
+                    <p>Tanpa biaya tersembunyi. Aktif langsung setelah pembayaran.</p>
+                </div>
+                <div class="price-grid" id="priceGrid"></div>
+            </div>
+        </section>
+
+        <!-- ✦ Live -->
+        <section class="section" id="live">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><span class="live-dot"></span> Real-time</span>
+                    <h2>Update langsung, transparan.</h2>
+                    <p>Pantau pertumbuhan user & grup terdaftar secara langsung.</p>
+                </div>
+                <div class="live-grid reveal">
+                    <div class="live-card">
+                        <div class="live-card-head">
+                            <h3>👥 User Terdaftar</h3>
+                            <span class="badge" id="liveUsersCount">0</span>
+                        </div>
+                        <ul class="live-list" id="liveUsers"></ul>
+                    </div>
+                    <div class="live-card">
+                        <div class="live-card-head">
+                            <h3>💬 Grup Ter-register</h3>
+                            <span class="badge" id="liveGroupsCount">0</span>
+                        </div>
+                        <ul class="live-list" id="liveGroups"></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ✦ How it works -->
+        <section class="section" id="how">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow">Simpel</span>
+                    <h2>Aktif dalam 4 langkah.</h2>
+                </div>
+                <div class="steps" id="steps"></div>
+            </div>
+        </section>
+
+        <!-- ✦ CTA -->
+        <section class="cta-band">
+            <div class="container cta-inner reveal">
+                <h2>Siap upgrade grupmu?</h2>
+                <p>Bergabung dengan grup lain yang sudah pakai Chaeul.</p>
+                <a href="#pricing" class="btn btn-primary btn-lg">Sewa Bot Sekarang</a>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container footer-inner">
+                <div class="brand"><span class="brand-mark">✦</span> Chaeul</div>
+                <p>© <span id="year"></span> Chaeul Bot. Dibuat dengan ♥ untuk komunitas.</p>
+            </div>
+        </footer>
+
+        <!-- ✦ Order modal -->
+        <div class="modal" id="orderModal" aria-hidden="true">
+            <div class="modal-backdrop" data-close></div>
+            <div class="modal-card reveal-modal">
+                <button class="modal-x" data-close aria-label="Tutup">×</button>
+                <div class="modal-body" id="modalBody"></div>
+            </div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+
+        <script src="/js/data.js"></script>
+        <script src="/js/app.js"></script>
+    </body>
+</html>
