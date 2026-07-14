@@ -85,9 +85,60 @@
         }
         DATA = r
         renderKPI(r.stats)
+        renderCharts(r.history || [])
         renderBots(r.licenses)
         renderLicenses(r.licenses)
         renderOrders(r.orders)
+    }
+
+    // ─── SVG Charts (no dependency) ───
+    function lineChart(el, series, opts = {}) {
+        const W = 500,
+            H = 170,
+            pad = 8
+        if (!series.length || series.every((s) => !s.data.some((v) => v > 0))) {
+            el.innerHTML = `<div class="chart-empty">Belum ada data.</div>`
+            return
+        }
+        const n = series[0].data.length
+        const allVals = series.flatMap((s) => s.data)
+        const max = Math.max(...allVals, 1)
+        const xStep = n > 1 ? (W - pad * 2) / (n - 1) : 0
+        const y = (v) => H - pad - (v / max) * (H - pad * 2)
+        const x = (i) => pad + i * xStep
+
+        let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`
+        // gridlines
+        for (let g = 0; g <= 3; g++) {
+            const gy = pad + (g / 3) * (H - pad * 2)
+            svg += `<line x1="${pad}" y1="${gy}" x2="${W - pad}" y2="${gy}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`
+        }
+        series.forEach((s) => {
+            const pts = s.data.map((v, i) => `${x(i)},${y(v)}`).join(" ")
+            // area fill
+            const area = `${pad},${H - pad} ${pts} ${x(n - 1)},${H - pad}`
+            svg += `<polygon points="${area}" fill="${s.color}" opacity="0.08"/>`
+            svg += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
+            // last point dot
+            const li = n - 1
+            svg += `<circle cx="${x(li)}" cy="${y(s.data[li])}" r="4" fill="${s.color}"/>`
+        })
+        svg += `</svg>`
+        el.innerHTML = svg
+    }
+
+    function renderCharts(history) {
+        // Pastikan minimal 2 titik biar garisnya kelihatan
+        const h = history.length === 1 ? [{ ...history[0] }, history[0]] : history
+        const users = h.map((x) => x.users || 0)
+        const groups = h.map((x) => x.groups || 0)
+        const rev = h.map((x) => x.revenue || 0)
+
+        lineChart($("#growthChart"), [
+            { data: users, color: "#7c9cff" },
+            { data: groups, color: "#5eead4" }
+        ])
+        lineChart($("#revenueChart"), [{ data: rev, color: "#b98cff" }])
     }
 
     function renderKPI(s) {

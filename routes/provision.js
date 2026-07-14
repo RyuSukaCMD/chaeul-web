@@ -11,6 +11,65 @@ function requireSync(req, res, next) {
     next()
 }
 
+// ─── Bot mengambil notifikasi untuk owner (order baru, lisensi hampir expired) ───
+router.get("/notifications", requireSync, (req, res) => {
+    const notifs = []
+    const orders = read("orders")
+    // Order baru (pending) yang belum dinotifikasi
+    for (const o of orders) {
+        if (o.status === "pending" && !o.notified) {
+            notifs.push({
+                type: "new_order",
+                text:
+                    `🧾 *Order Baru!*\n` +
+                    `ID: ${o.id}\n` +
+                    `Paket: ${o.planName}${o.months ? ` (${o.months} bln)` : ""}\n` +
+                    `Harga: Rp ${Number(o.price).toLocaleString("id-ID")}\n` +
+                    `Kontak: ${o.contact || "-"}\n` +
+                    `Grup: ${o.groupLink}`,
+                orderId: o.id
+            })
+        }
+    }
+    // Lisensi hampir kadaluarsa (< 3 hari) belum dinotifikasi
+    const licenses = read("licenses")
+    for (const l of licenses) {
+        if (l.status === "active" && l.expiresAt) {
+            const left = l.expiresAt - Date.now()
+            if (left > 0 && left < 3 * 86400000 && !l.expNotified) {
+                notifs.push({
+                    type: "expiring",
+                    text:
+                        `⏰ *Lisensi Hampir Habis!*\n` +
+                        `${l.key} (${l.plan})\n` +
+                        `Sisa: ${Math.ceil(left / 86400000)} hari\n` +
+                        `Owner: ${l.ownerNumber || "-"}`,
+                    key: l.key
+                })
+            }
+        }
+    }
+    res.json({ ok: true, notifications: notifs })
+})
+
+// ─── Bot menandai notifikasi sudah dikirim ───
+// body: { orderIds:[], licenseKeys:[] }
+router.post("/notifications/ack", requireSync, (req, res) => {
+    const orderIds = req.body?.orderIds || []
+    const licenseKeys = req.body?.licenseKeys || []
+    if (orderIds.length) {
+        update("orders", (list) =>
+            list.map((o) => (orderIds.includes(o.id) ? { ...o, notified: true } : o))
+        )
+    }
+    if (licenseKeys.length) {
+        update("licenses", (list) =>
+            list.map((l) => (licenseKeys.includes(l.key) ? { ...l, expNotified: true } : l))
+        )
+    }
+    res.json({ ok: true })
+})
+
 // ─── Bot mengambil job provisioning ───
 // Job = order berstatus "paid" atau "approved" yang belum di-provision.
 router.get("/jobs", requireSync, (req, res) => {

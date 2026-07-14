@@ -650,6 +650,77 @@ img {
     grid-template-columns: repeat(2, 1fr);
     gap: 22px;
 }
+.live-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+/* Fishing feed item */
+.fish-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    animation: slideIn 0.5s var(--ease);
+    font-size: 0.86rem;
+}
+.fish-item .fi-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.fish-item .fi-meta {
+    flex: 1;
+    min-width: 0;
+}
+.fish-item .fi-name {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fish-item .fi-who {
+    font-size: 0.74rem;
+    color: var(--faint);
+}
+.fish-item .fi-val {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    color: var(--green);
+    font-weight: 600;
+    flex-shrink: 0;
+}
+/* rarity dot colors */
+.r-common {
+    background: #9ca3af;
+}
+.r-uncommon {
+    background: #34d399;
+}
+.r-rare {
+    background: #60a5fa;
+}
+.r-epic {
+    background: #a78bfa;
+}
+.r-legendary {
+    background: #fbbf24;
+}
+.r-mythical {
+    background: #fb923c;
+}
+.r-secret {
+    background: #f472b6;
+}
+.r-ephemeral {
+    background: linear-gradient(90deg, #f472b6, #60a5fa);
+}
+.r-unreal {
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+}
 .live-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -733,6 +804,11 @@ img {
 .live-item .t2 {
     font-size: 0.76rem;
     color: var(--faint);
+}
+.live-item .mono-num {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+    font-size: 0.86rem;
 }
 .live-item .tag {
     font-size: 0.68rem;
@@ -989,6 +1065,67 @@ img {
     letter-spacing: 0.05em;
     margin: 14px 0;
 }
+/* Duration selector */
+.dur-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+.dur-opt {
+    position: relative;
+    padding: 11px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+}
+.dur-opt:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+.dur-opt.active {
+    background: linear-gradient(135deg, rgba(124, 156, 255, 0.18), rgba(185, 140, 255, 0.12));
+    border-color: rgba(124, 156, 255, 0.45);
+    color: var(--text);
+}
+.dur-off {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--green);
+    margin-top: 2px;
+}
+/* Coupon */
+.coupon-row {
+    display: flex;
+    gap: 8px;
+}
+.coupon-row input {
+    flex: 1;
+}
+.coupon-row .btn {
+    flex-shrink: 0;
+}
+/* Total */
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    margin: 6px 0 14px;
+    border-top: 1px solid var(--border);
+    font-weight: 600;
+}
+.total-amt {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brand);
+}
 
 /* ─── Toast ─── */
 .toast {
@@ -1054,6 +1191,9 @@ img {
     .steps {
         grid-template-columns: repeat(2, 1fr);
     }
+    .live-grid-3 {
+        grid-template-columns: 1fr;
+    }
 }
 @media (max-width: 640px) {
     .nav-links {
@@ -1087,6 +1227,7 @@ img {
     .feature-grid,
     .price-grid,
     .live-grid,
+    .live-grid-3,
     .steps {
         grid-template-columns: 1fr;
     }

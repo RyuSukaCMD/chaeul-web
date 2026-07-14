@@ -8,6 +8,18 @@
         private: { id: "private", name: "Private Group", price: 10000, maxMembers: 3 },
         public: { id: "public", name: "Public Group", price: 15000, maxMembers: null }
     }
+    let DURATIONS = [
+        { months: 1, label: "1 Bulan", discount: 0 },
+        { months: 3, label: "3 Bulan", discount: 0.05 },
+        { months: 6, label: "6 Bulan", discount: 0.1 },
+        { months: 12, label: "1 Tahun", discount: 0.2 }
+    ]
+    fetch("/api/durations")
+        .then((r) => r.json())
+        .then((d) => {
+            if (Array.isArray(d) && d.length) DURATIONS = d
+        })
+        .catch(() => {})
 
     // ─── Year ───
     $("#year").textContent = new Date().getFullYear()
@@ -162,9 +174,10 @@
         requestAnimationFrame(tick)
     }
 
-    // ─── Live data (SSE + polling fallback) ───
+    // ─── Live data (SSE real-time + polling fallback) ───
     const iconFor = (name) => (name || "?").trim().charAt(0).toUpperCase() || "?"
 
+    // User: format "62857XXXX - (Nama)"
     function renderUsers(items, total) {
         $("#liveUsersCount").textContent = total
         const ul = $("#liveUsers")
@@ -173,20 +186,21 @@
             return
         }
         ul.innerHTML = items
-            .slice(-6)
+            .slice(-7)
             .reverse()
-            .map(
-                (u) => `
+            .map((u) => {
+                const disp = u.display || `${u.number || "•••"} - (${u.name || "User"})`
+                return `
             <li class="live-item">
                 <div class="av">${iconFor(u.name)}</div>
                 <div class="meta">
-                    <div class="t1">${escapeHtml(u.name)}</div>
-                    <div class="t2">${u.number || "•••"}</div>
+                    <div class="t1 mono-num">${escapeHtml(disp)}</div>
                 </div>
             </li>`
-            )
+            })
             .join("")
     }
+    // Grup: nama grup saja
     function renderGroups(items, total) {
         $("#liveGroupsCount").textContent = total
         const ul = $("#liveGroups")
@@ -195,20 +209,49 @@
             return
         }
         ul.innerHTML = items
-            .slice(-6)
+            .slice(-7)
             .reverse()
             .map(
                 (g) => `
             <li class="live-item">
                 <div class="av">${iconFor(g.name)}</div>
-                <div class="meta">
-                    <div class="t1">${escapeHtml(g.name)}</div>
-                    <div class="t2">${g.members != null ? g.members + " anggota" : "grup"}</div>
-                </div>
+                <div class="meta"><div class="t1">${escapeHtml(g.name)}</div></div>
                 <span class="tag ${g.type === "public" ? "public" : "private"}">${g.type || "private"}</span>
             </li>`
             )
             .join("")
+    }
+    // Fishing feed
+    const fishFeed = []
+    function renderFishing() {
+        const ul = $("#liveFishing")
+        if (!ul) return
+        if (!fishFeed.length) {
+            ul.innerHTML = `<div class="empty">Menunggu tangkapan...</div>`
+            return
+        }
+        ul.innerHTML = fishFeed
+            .slice(-7)
+            .reverse()
+            .map((f) => {
+                const r = (f.rarity || "common").toLowerCase()
+                const val = f.value ? `+Rp ${Number(f.value).toLocaleString("id-ID")}` : ""
+                return `
+            <li class="fish-item">
+                <span class="fi-dot r-${r}"></span>
+                <div class="fi-meta">
+                    <div class="fi-name">${escapeHtml(f.fish)}</div>
+                    <div class="fi-who">${escapeHtml(f.name)}${f.island ? " · " + escapeHtml(f.island) : ""}</div>
+                </div>
+                <span class="fi-val">${val}</span>
+            </li>`
+            })
+            .join("")
+    }
+    function pushFish(f) {
+        fishFeed.push(f)
+        while (fishFeed.length > 20) fishFeed.shift()
+        renderFishing()
     }
 
     function applyStats(s) {
@@ -219,21 +262,24 @@
 
     async function loadLists() {
         try {
-            const [u, g] = await Promise.all([
+            const [u, g, f] = await Promise.all([
                 fetch("/api/users").then((r) => r.json()),
-                fetch("/api/groups").then((r) => r.json())
+                fetch("/api/groups").then((r) => r.json()),
+                fetch("/api/fishing").then((r) => r.json())
             ])
             renderUsers(u.items || [], u.total || 0)
             renderGroups(g.items || [], g.total || 0)
+            fishFeed.length = 0
+            ;(f.items || []).forEach((x) => fishFeed.push(x))
+            renderFishing()
         } catch {
-            // Demo fallback bila backend belum jalan (mis. preview statis)
             renderUsers([], 0)
             renderGroups([], 0)
+            renderFishing()
         }
     }
 
     function initLive() {
-        // Coba SSE dulu
         let sseOk = false
         try {
             const es = new EventSource("/api/live")
@@ -243,21 +289,40 @@
                     applyStats(JSON.parse(ev.data))
                 } catch {}
             })
-            es.onerror = () => {
-                /* fallback polling tetap jalan */
-            }
+            es.addEventListener("lists", (ev) => {
+                try {
+                    const d = JSON.parse(ev.data)
+                    renderUsers(d.users || [], d.userTotal || 0)
+                    renderGroups(d.groups || [], d.groupTotal || 0)
+                } catch {}
+            })
+            es.addEventListener("fishinit", (ev) => {
+                try {
+                    const d = JSON.parse(ev.data)
+                    fishFeed.length = 0
+                    ;(d.items || []).forEach((x) => fishFeed.push(x))
+                    renderFishing()
+                } catch {}
+            })
+            es.addEventListener("fishing", (ev) => {
+                try {
+                    pushFish(JSON.parse(ev.data))
+                } catch {}
+            })
+            es.onerror = () => {}
         } catch {}
 
-        // Snapshot awal + polling ringan (juga sebagai fallback SSE)
+        // Snapshot awal + polling fallback (kalau SSE gagal)
         const poll = async () => {
             try {
                 const s = await fetch("/api/stats").then((r) => r.json())
                 if (!sseOk) applyStats(s)
             } catch {}
-            await loadLists()
+            if (!sseOk) await loadLists()
         }
         poll()
-        setInterval(poll, 6000)
+        loadLists()
+        setInterval(poll, 8000)
     }
     initLive()
 
@@ -307,15 +372,81 @@
                 <label>Nomor WhatsApp kamu (untuk konfirmasi)</label>
                 <input id="fContact" type="text" placeholder="628xxxxxxxxxx" autocomplete="off" />
             </div>
+            <div class="field">
+                <label>Durasi Sewa</label>
+                <div class="dur-grid" id="durGrid"></div>
+            </div>
+            <div class="field">
+                <label>Kode Kupon (opsional)</label>
+                <div class="coupon-row">
+                    <input id="fCoupon" type="text" placeholder="KODE" autocomplete="off" style="text-transform:uppercase" />
+                    <button class="btn btn-ghost btn-sm" id="applyCoupon" type="button">Pakai</button>
+                </div>
+                <div class="hint" id="couponMsg"></div>
+            </div>
+            <div class="total-row">
+                <span>Total</span>
+                <span class="total-amt" id="totalAmt">${rp(p.price)}</span>
+            </div>
             <button class="btn btn-primary" id="submitOrder" style="width:100%;justify-content:center">
                 Lanjut ke Pembayaran
                 <svg viewBox="0 0 24 24" class="ico"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </button>`
         openModal()
-        $("#submitOrder").addEventListener("click", () => submitOrder(planId))
+
+        // Render duration options + total calculator
+        let selMonths = 1
+        let couponPercent = 0
+        let couponCode = null
+        renderDurations()
+        function renderDurations() {
+            $("#durGrid").innerHTML = DURATIONS.map(
+                (d) => `<button type="button" class="dur-opt ${d.months === selMonths ? "active" : ""}" data-mo="${d.months}">
+                    ${d.label}${d.discount ? `<span class="dur-off">-${d.discount * 100}%</span>` : ""}
+                </button>`
+            ).join("")
+            $$("#durGrid .dur-opt").forEach((b) =>
+                b.addEventListener("click", () => {
+                    selMonths = Number(b.dataset.mo)
+                    renderDurations()
+                    calcTotal()
+                })
+            )
+        }
+        function calcTotal() {
+            const dur = DURATIONS.find((d) => d.months === selMonths) || DURATIONS[0]
+            let t = p.price * dur.months * (1 - dur.discount) * (1 - couponPercent / 100)
+            $("#totalAmt").textContent = rp(Math.round(t))
+        }
+        $("#applyCoupon").addEventListener("click", async () => {
+            const code = $("#fCoupon").value.trim().toUpperCase()
+            if (!code) return
+            const r = await fetch("/api/coupon/check", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code })
+            }).then((x) => x.json())
+            const msg = $("#couponMsg")
+            if (r.ok) {
+                couponPercent = r.coupon.percent
+                couponCode = r.coupon.code
+                msg.textContent = `✅ Kupon -${couponPercent}% diterapkan!`
+                msg.style.color = "var(--green)"
+            } else {
+                couponPercent = 0
+                couponCode = null
+                msg.textContent = "⚠️ " + (r.error || "Kupon tidak valid.")
+                msg.style.color = "#f87171"
+            }
+            calcTotal()
+        })
+
+        $("#submitOrder").addEventListener("click", () =>
+            submitOrder(planId, selMonths, couponCode)
+        )
     }
 
-    async function submitOrder(planId) {
+    async function submitOrder(planId, months = 1, coupon = null) {
         const groupLink = $("#fGroup").value.trim()
         const contact = $("#fContact").value.trim()
         const err = $("#errGroup")
@@ -333,7 +464,7 @@
             data = await fetch("/api/order", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ plan: planId, groupLink, contact })
+                body: JSON.stringify({ plan: planId, groupLink, contact, months, coupon })
             }).then((r) => r.json())
         } catch {
             data = { ok: false, error: "Server tidak dapat dihubungi." }

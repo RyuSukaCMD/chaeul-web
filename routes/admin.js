@@ -17,6 +17,26 @@ router.post("/auth", (req, res) => {
     res.json({ ok: token === ADMIN_TOKEN })
 })
 
+// Catat snapshot harian (untuk grafik tren). Dipanggil tiap overview.
+function recordSnapshot(stats) {
+    const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+    update("history", (list) => {
+        const idx = list.findIndex((h) => h.date === today)
+        const snap = {
+            date: today,
+            users: stats.users,
+            groups: stats.groups,
+            activeLicenses: stats.activeLicenses,
+            revenue: stats.revenue
+        }
+        if (idx >= 0) list[idx] = snap
+        else list.push(snap)
+        // simpan maks 30 hari
+        while (list.length > 30) list.shift()
+        return list
+    })
+}
+
 // ─── Ringkasan dashboard ───
 router.get("/overview", requireAdmin, (req, res) => {
     const users = read("users")
@@ -28,18 +48,25 @@ router.get("/overview", requireAdmin, (req, res) => {
         .filter((o) => o.status === "paid" || o.status === "provisioned")
         .reduce((s, o) => s + (o.price || 0), 0)
 
+    const stats = {
+        users: users.length,
+        groups: groups.length,
+        licenses: licenses.length,
+        activeLicenses: licenses.filter((l) => l.status === "active").length,
+        onlineBots: licenses.filter((l) => l.online).length,
+        orders: orders.length,
+        pendingOrders: orders.filter((o) => o.status === "pending").length,
+        revenue
+    }
+    recordSnapshot(stats)
+
+    // Data grafik: gabungkan riwayat + agregasi order per hari (7 hari terakhir)
+    const history = read("history").slice(-14)
+
     res.json({
         ok: true,
-        stats: {
-            users: users.length,
-            groups: groups.length,
-            licenses: licenses.length,
-            activeLicenses: licenses.filter((l) => l.status === "active").length,
-            onlineBots: licenses.filter((l) => l.online).length,
-            orders: orders.length,
-            pendingOrders: orders.filter((o) => o.status === "pending").length,
-            revenue
-        },
+        stats,
+        history,
         licenses: licenses.sort((a, b) => b.createdAt - a.createdAt),
         orders: orders.sort((a, b) => b.createdAt - a.createdAt),
         updatedAt: Date.now()
@@ -119,6 +146,53 @@ router.post("/order/delete", requireAdmin, (req, res) => {
     let ok = false
     update("orders", (list) => {
         const next = list.filter((o) => o.id !== id)
+        ok = next.length !== list.length
+        return next
+    })
+    res.json({ ok })
+})
+
+// ─── Kupon: list ───
+router.get("/coupons", requireAdmin, (req, res) => {
+    res.json({ ok: true, items: read("coupons") })
+})
+
+// ─── Kupon: buat ───
+// body: { code, percent, maxUse?, days? }
+router.post("/coupon/create", requireAdmin, (req, res) => {
+    const code = (req.body?.code || "").trim().toUpperCase()
+    if (!code) return res.status(400).json({ ok: false, error: "Kode wajib." })
+    const percent = Math.min(100, Math.max(0, Number(req.body?.percent) || 0))
+    const maxUse = Number(req.body?.maxUse) || 0
+    const days = Number(req.body?.days) || 0
+    const coupon = {
+        code,
+        percent,
+        maxUse,
+        used: 0,
+        active: true,
+        expiresAt: days ? Date.now() + days * 86400000 : 0,
+        createdAt: Date.now()
+    }
+    let exists = false
+    update("coupons", (list) => {
+        if (list.some((c) => c.code === code)) {
+            exists = true
+            return list
+        }
+        list.push(coupon)
+        return list
+    })
+    if (exists) return res.status(400).json({ ok: false, error: "Kode sudah ada." })
+    res.json({ ok: true, coupon })
+})
+
+// ─── Kupon: hapus ───
+router.post("/coupon/delete", requireAdmin, (req, res) => {
+    const code = (req.body?.code || "").trim().toUpperCase()
+    let ok = false
+    update("coupons", (list) => {
+        const next = list.filter((c) => c.code !== code)
         ok = next.length !== list.length
         return next
     })
